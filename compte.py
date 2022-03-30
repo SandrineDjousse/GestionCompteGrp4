@@ -25,7 +25,7 @@ def selectionneruncompte():
             l.append(item['numero'])
             print("Compte : {} , avec un solde de : {},      N°{} \n".format(item['nom'],item['solde'],item['numero']))
     choix = int(input("     Entrez le numéro correspondant -->"))
-    while(choix not in l or choix ):
+    while(choix not in l ):
         choix = int(input("     Entrez le numéro correspondant correct -->"))
     if (c == 0):
         choix = -1
@@ -43,7 +43,7 @@ def selectionnerunsouscompte():
             print("Compte : {} , avec un solde de : {},      N°{} \n".format(item['nom'],item['solde'],item['numero']))
     if(c!=0):
         choix = int(input("         Entrez le numéro correspondant -->"))
-        while (choix not in l or choix):
+        while (choix not in l ):
             choix = int(input("     Entrez le numéro correspondant correct -->"))
     else:
         choix = -1
@@ -153,13 +153,13 @@ def choix():
 def Supprimercompte():
     if (len(listedescomptes) != 0):
         numerodecompteselectionne = selectionneruncompte()
-        listedescomptes.pop(numerodecompteselectionne)
         print('Compte supprimé avec succès ainsi que tous ses sous comptes')
         for item in listedescomptes:
             if(item['numeroparent'] == numerodecompteselectionne):
                 listedescomptes.pop(item['numero'])
     else :
         print("vous devez d'abord créer un compte")
+    listedescomptes.pop(numerodecompteselectionne)
 
 def erreur():
     print('Entrez des informations correctes')
