@@ -1,139 +1,178 @@
+from classe import Compte
+from sc import SousCompte
+import pickle
+import os
 
 
-listedescomptes = []
+def enregistrer(objet):
+    with open("fichier.txt","wb") as f:
+        pi=pickle.Pickler(f)
+        pi.dump(objet)
 
+def recuperer(f):
+    with open(f,"rb") as fic:
+        pi =pickle.Unpickler(fic)
+        object=pi.load()
+        return object
+# l=[]
+# enregistrer(l)
+listedescomptes = recuperer('fichier.txt')
+def intec():
+    try:
+        nombre = input("         Entrez le montant à déposer -->")
+        return int(nombre)
+    except ValueError:
+        print(f"{nombre} n'est pas un nombre.")
+        return inte()
 
-def estceunnombre(element):
-    while(element is not int):
-        element = input("Entrez le nombre correct")
-    return element
 
 def creerCompte():
     nom = input("               Entrez le nom du compte -->")
-    solde = int(input("         Entrez le solde de départ -->"))
+    solde = intec()
     #solde = estceunnombre(solde)
-    compte = { "nom":nom, "solde" : solde, "numero":len(listedescomptes), "numeroparent": -1 ,"type":"Principal" ,"pourcentagerestant": 100 }
+    compte = Compte(nom,solde,len(listedescomptes))
     listedescomptes.append(compte)
     print('Votre compte a été crée' )
-
-def selectionneruncompte():
-    c = 0
-    l =[]
-    for item in listedescomptes:
-        if item['type'] == "Principal":
-            c += 1
-            l.append(item['numero'])
-            print("Compte : {} , avec un solde de : {},      N°{} \n".format(item['nom'],item['solde'],item['numero']))
-    choix = int(input("     Entrez le numéro correspondant -->"))
-    while(choix not in l ):
-        choix = int(input("     Entrez le numéro correspondant correct -->"))
-    if (c == 0):
-        choix = -1
-    #choix = estceunnombre(choix)
-    return int(choix)
 
 def selectionnerunsouscompte():
     c = 0
     l =[]
     print("         Veuillez d'abord selectionner un sous compte")
     for item in listedescomptes:
-        if item['type'] == "SousCompte":
+        if item.getnumerocompteparent() != -1:
             c+=1
-            l.append(item['numero'])
-            print("Compte : {} , avec un solde de : {},      N°{} \n".format(item['nom'],item['solde'],item['numero']))
+            l.append(item.getnumero())
+            print(item.__repr__())
     if(c!=0):
-        choix = int(input("         Entrez le numéro correspondant -->"))
+        choix = inte()
         while (choix not in l ):
-            choix = int(input("     Entrez le numéro correspondant correct -->"))
+            choix = int(input("     Entrez un numéro de compte présent dans la liste des choix -->"))
     else:
         choix = -1
     #choix = estceunnombre(choix)
     return int(choix)
 
+def intep():
+    try:
+        nombre = input("Inserer un pourcentage à affecter à ce sous compte")
+        return int(nombre)
+    except ValueError:
+        print(f"{nombre} n'est pas un nombre.")
+        return inte()
 
 def affecterpourcentage(numerocompte):
-    pourcent = int(input("Inserer un pourcentage à affecter à ce sous compte"))
+    pourcent = intep()
     #pourcent = estceunnombre(pourcent)
-    pourcentagerestant = int(listedescomptes[int(numerocompte)]['pourcentagerestant'])
+    pourcentagerestant = int(listedescomptes[int(numerocompte)].getpourcentagerestant())
     while(pourcent < 0 or pourcent > pourcentagerestant ):
-        pourcent = int(input("Inserer un pourcentage à affecter à ce sous compte correct "))
+        pourcent = intep()
     return int(pourcent)
 
 def creerSousCompte():
     if(len(listedescomptes) != 0):
         print("Veuillez d'abord selectionner un compte !!")
-
         numerocompteparent = selectionneruncompte()
         nom = input("           Entrez le nom du sous compte -->")
         pourcentage = int(affecterpourcentage(numerocompteparent))
-        pourcentag = (listedescomptes[int(numerocompteparent)]["solde"] * int(pourcentage)) / 100
-        souscompte = {"nom": nom, "solde": pourcentag, "numero": len(listedescomptes), "numeroparent": numerocompteparent, "type": "SousCompte",
-                      "pourcentage": pourcentage,"pourcentagerestant": 100}
-        listedescomptes[int(numerocompteparent)]["pourcentagerestant"]=listedescomptes[int(numerocompteparent)]["pourcentagerestant"]-pourcentage
+        solde = (listedescomptes[int(numerocompteparent)].getsolde() * int(pourcentage)) / 100
+        souscompte = SousCompte(nom,solde,len(listedescomptes),numerocompteparent,pourcentage)
+        listedescomptes[int(numerocompteparent)].setpourcentagerestant(listedescomptes[int(numerocompteparent)].getpourcentagerestant()-pourcentage)
         print('Votre sous compte a été crée')
         listedescomptes.append(souscompte)
     else:
         print("vous devez d'abord créer un compte !!")
 
-
 def Crediter( ):
     if (len(listedescomptes) != 0):
         numerodecompteselectionne = selectionneruncompte()
-        montantCrediter = int(input("       Entrez le montant à ajouter du sous compte -->"))
-        listedescomptes[numerodecompteselectionne]["solde"] = montantCrediter + listedescomptes[numerodecompteselectionne]["solde"]
-        miseajour(numerodecompteselectionne, montantCrediter)
-        print('Votre depôt en compte a été effectué avec succès')
+        if(listedescomptes[numerodecompteselectionne].getpourcentagerestant()== 0):
+            montantCrediter = intec()
+            listedescomptes[numerodecompteselectionne].setsolde(montantCrediter + listedescomptes[numerodecompteselectionne].getsolde())
+            miseajour(numerodecompteselectionne, montantCrediter)
+            print('Votre depôt en compte a été effectué avec succès')
+        else:
+            print("Veuillez d'abord complètement partager votre compte en sous compte")
     else:
         print("vous devez d'abord créer un compte")
 
+def intsec():
+    try:
+        nombre = input("     Entrez un numéro de compte présent dans la liste des choix -->")
+        return int(nombre)
+    except ValueError:
+        print(f"{nombre} n'est pas un nombre.")
+        return inte()
+
+def selectionneruncompte():
+    c = 0
+    l =[]
+    for Compte in listedescomptes:
+        if Compte.getnumerocompteparent() == -1:
+            c += 1
+            l.append(Compte.getnumero())
+            print(Compte.__repr__())
+    choix = inte()
+    while(choix not in l ):
+        choix = intsec()
+    if (c == 0):
+        choix = -1
+    #choix = estceunnombre(choix)
+    return int(choix)
 def miseajour(numerocompte, montant):
     for item in listedescomptes:
-        if item['numeroparent'] == numerocompte:
-            item['solde'] = item['solde'] + (item['pourcentage']*montant)/100
+        if item.getnumerocompteparent() == numerocompte:
+            item.setsolde(item.getsolde() + ((item.getpourcentage()*montant)/100))
+
+def intde():
+    try:
+        nombre = input("        Entrez le montant à retirer du sous compte -->")
+        return int(nombre)
+    except ValueError:
+        print(f"{nombre} n'est pas un nombre.")
+        return inte()
 
 def Debiter():
     numerosouscompteselectionne = selectionnerunsouscompte()
     if(numerosouscompteselectionne != -1):
-        try:
-            montantDebiter = int(input("        Entrez le montant à retirer du sous compte -->"))
-        except:
-            erreur()
-        if(listedescomptes[numerosouscompteselectionne]["solde"] >= montantDebiter):
-            listedescomptes[numerosouscompteselectionne]["solde"] =  listedescomptes[numerosouscompteselectionne]["solde"] - montantDebiter
-            parentnumero =  listedescomptes[numerosouscompteselectionne]["numeroparent"]
-            listedescomptes[parentnumero]['solde'] = listedescomptes[parentnumero]['solde'] - montantDebiter
+        montantDebiter = intde()
+        if(listedescomptes[numerosouscompteselectionne].getsolde() >= montantDebiter):
+            listedescomptes[numerosouscompteselectionne].setsolde(listedescomptes[numerosouscompteselectionne].getsolde() - montantDebiter)
+            parentnumero =  listedescomptes[numerosouscompteselectionne].getnumerocompteparent()
+            listedescomptes[parentnumero].setsolde(listedescomptes[parentnumero].getsolde() - montantDebiter )
             print('Votre retrait a été effectué avec succès')
         else: print("Solde Insuffisant pour effectuer l'opération")
     else:
         print('Aucun Sous Compte crée impossible de faire un retrait')
 
-def estceunsouscompte(liste):
-    if(liste["type"] == "Principal"):
-        return 1
-    else: return 0
+def inte():
+    #user_value = input("Enter an integer: ")
+    try:
+        nombre=input("     Entrez le numéro correspondant -->")
+        return int(nombre)
+    except ValueError:
+        print(f"{nombre} n'est pas un nombre.")
+        return inte()
+
 
 def menu():
     print("--> --> -->       Bienvenue Choississez une opération !      <-- <-- <-- \n"
-          "Créer un Compte :                1\n"
-          "Créer un Sous-Compte :           2\n"
-          "Effectuer un dépôt en compte :   3\n"
-          "Effectuer un retrait en compte : 4\n"
-          "Consulter mes Comptes :          5\n"
-          "Supprimer un compte :            6\n"
-          "Supprimer un sous compte :       7\n"
-          "Quitter :                        8\n"
+          "Créer un Compte :                --> 1\n"
+          "Créer un Sous-Compte :           --> 2\n"
+          "Effectuer un dépôt en compte :   --> 3\n"
+          "Effectuer un retrait en compte : --> 4\n"
+          "Consulter mes Comptes :          --> 5\n"
+          "Supprimer un compte :            --> 6\n"
+          "Supprimer un sous compte :       --> 7\n"
+          "Quitter et Enrégistrer:          --> 8\n"
           )
 def Consulter():
     if (len(listedescomptes) != 0):
-        for item in listedescomptes:
-            if item['type'] == "Principal":
-                print("Compte : {} , avec un solde de : {},      N°{} , avec {}% restant\n".format(item['nom'], item['solde'], item['numero'], item['pourcentagerestant']))
-            else:
-                if item['type'] == "SousCompte":
-                    print("             Sous Compte : {} , avec un solde de : {},      N°{}, du Compte parent N°{} \n".format(item['nom'], item['solde'], item['numero'],item['numeroparent']))
+        for Compte in listedescomptes:
+            print(Compte.__repr__())
     else: print("Aucun Compte crée pour l'instant")
 
 def Quitter():
+    enregistrer(listedescomptes)
     return 0
 def choix():
     menu()
@@ -141,7 +180,7 @@ def choix():
     try:
         while int(choix) not in [1,2,3,4,5,6,7,8]:
             print("Entrez un numéro corrrect : ")
-            choix = input()
+            choix = inte()
     except :
         print("ERREUR entrez un élément correct!")
         choix = 0
@@ -149,23 +188,26 @@ def choix():
             print("Entrez un numéro corrrect : ")
             choix = input()
     return int(choix)
-
+def erase(element):
+    for item in  reversed(listedescomptes):
+        if (item.getnumerocompteparent() == element):
+            listedescomptes.pop(item.getnumero())
 def Supprimercompte():
     if (len(listedescomptes) != 0):
         numerodecompteselectionne = selectionneruncompte()
         print('Compte supprimé avec succès ainsi que tous ses sous comptes')
-        for item in listedescomptes:
-            if(item['numeroparent'] == numerodecompteselectionne):
-                listedescomptes.pop(item['numero'])
+        erase(numerodecompteselectionne)
+        listedescomptes.pop(numerodecompteselectionne)
+
     else :
         print("vous devez d'abord créer un compte")
-    listedescomptes.pop(numerodecompteselectionne)
 
-def erreur():
-    print('Entrez des informations correctes')
 def Supprimersouscompte():
     numerosouscompteselectionne = selectionnerunsouscompte()
     if (numerosouscompteselectionne != -1):
+        numeroparent = listedescomptes[numerosouscompteselectionne].getnumerocompteparent()
+        pourcentagerestant = listedescomptes[numeroparent].getpourcentagerestant() + listedescomptes[numerosouscompteselectionne].getpourcentage()
+        listedescomptes[numeroparent].setpourcentagerestant(pourcentagerestant)
         listedescomptes.pop(numerosouscompteselectionne)
         print('Sous Compte supprimé avec succès')
     else:

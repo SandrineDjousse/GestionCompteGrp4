@@ -17,6 +17,7 @@ if __name__ == '__main__':
     choix = compte.choix()
     compte.traitement(choix)
 
+
     while choix != 8:
         choix = compte.choix()
         compte.traitement(choix)
